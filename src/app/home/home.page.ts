@@ -37,8 +37,6 @@ export class HomePage {
   constructor(
     public toastCtrl: ToastController,
     private platform: Platform,
-    private geolocation: Geolocation,
-    private nativeGeocoder: NativeGeocoder,
     public zone: NgZone,
   ) {
     this.initPage()
@@ -59,30 +57,27 @@ export class HomePage {
     this.map = GoogleMaps.create('map', {
       camera: {
         target: {
-          lat: 43.0741704,
-          lng: -89.3809802
+          lat: this.latitude,
+          lng: this.longitude
         },
         zoom: 18,
         tilt: 30
       }
     });
-    this.goToMyLocation(51.5072, 0.1276);
+    this.goToMyLocation(this.latitude, this.longitude);
   }
 
   goToMyLocation(lat: number, long: number) {
     this.map.clear();
-    let lati = this.latitude;
-    let longi = this.longitude;
-
     // Get the location of you
     this.map.getMyLocation().then((location: MyLocation) => {
-      console.log(JSON.stringify(location, null, 2));
+     
 
       // Move the map camera to the location with animation
       this.map.animateCamera({
         target: {
-          lat: "51.5072",
-          lng: "0.1276"
+          lat: this.latitude,
+          lng: this.longitude
         },
         zoom: 17,
         duration: 5000
@@ -99,7 +94,7 @@ export class HomePage {
 
       this.map.on(GoogleMapsEvent.MAP_READY).subscribe(
         (data) => {
-          console.log("Click MAP", data);
+         
         }
       );
     })
@@ -119,7 +114,7 @@ export class HomePage {
 
 
   dismiss() {
-    console.log("Clear search")
+   
     this.showImage = true;
     this.items = [];
     this.autocomplete = {
@@ -134,12 +129,8 @@ export class HomePage {
   }
 
 
-  chooseItem(item: any) {
-    console.log('modal > chooseItem > item > ', item['description']);
-    this.showImage = false;
-    this.selectedItem = item;
-    this.items = [];
-    this.autocomplete.input = item.structured_formatting.main_text + " - " + item.structured_formatting.secondary_text;
+  formatDestinationCity(item: any){
+
     if (item.structured_formatting.secondary_text.indexOf(",") > 0) {
       let lieuSplitted = item.structured_formatting.secondary_text.split(",", 1);
       this.destinationCity = lieuSplitted[0]
@@ -147,25 +138,35 @@ export class HomePage {
     else {
       this.destinationCity = item.structured_formatting.main_text
     }
+  }
+
+
+  chooseItem(item: any) {
+  
+    this.showImage = false;
+    this.selectedItem = item;
+    this.items = [];
+    this.autocomplete.input = item.structured_formatting.main_text + " - " + item.structured_formatting.secondary_text;
+    this.formatDestinationCity(item);
     let geocoder = new google.maps.Geocoder();
     geocoder.geocode({ 'address': item['description'] }, (results, status) => {
       if (status == google.maps.GeocoderStatus.OK) {
         this.zone.run(() => {
           this.latitude = results[0].geometry.location.lat();
           this.longitude = results[0].geometry.location.lng();
-          console.log("Ok latitude " + this.latitude)
+         
         })
       }
     });
 
-    console.log("Ok selected item " + JSON.stringify(this.selectedItem))
+   
     this.platform.ready();
     this.loadMap();
   }
 
   updateSearch() {
     this.showImage = false;
-    console.log('modal > updateSearch ' + this.autocomplete.input);
+   
     if (this.autocomplete.input == '') {
       this.items = [];
       this.showImage = true;
@@ -180,12 +181,10 @@ export class HomePage {
       language: "EN",
     }
 
-    console.log(config)
+   
 
-    this.acService.getPlacePredictions({ input: this.autocomplete.input }, function (predictions, status) {
-      console.log('modal > getPlacePredictions > status > ', status);
+    this.acService.getPlacePredictions({ input: this.autocomplete.input }, function (predictions, status) {  
       self.items = [];
-      console.log("predictions " + JSON.stringify(predictions))
       if (predictions) {
         predictions.forEach(function (prediction) {
           self.items.push(prediction);
