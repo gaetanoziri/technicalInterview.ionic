@@ -1,0 +1,59 @@
+
+
+.back-button{
+  display: inline-block;
+  font-size: 25px;
+  color: darkslateblue;
+  align-items: center;
+  vertical-align: middle;
+  margin-left: 5pt;
+  
+}
+
+.appbar-title{
+  display: inline-block;
+  position: relative;
+  vertical-align: middle;
+  color: aqua; 
+  font-size: 17pt;
+  text-align: center;
+  flex-direction: row;
+  width: 80%;
+  height: 100%;
+}
+
+.heading{
+  display: flex;
+  margin-top: 20pt;
+  margin-left: 20pt;
+  font-size: 15pt;
+}
+
+.sub-heading{
+  display: flex;
+  margin-left: 20pt;
+  margin-right: 15pt;
+  color: grey;
+  font-size: 13pt;
+}
+
+ion-searchbar{
+  display: flex;
+}
+
+.bottom-content{
+  display: flex;
+  height: 70%;
+  width: 100%;
+  padding-left: 70pt;
+  padding-right: 50pt;
+  padding-top: 50pt;
+  align-content: center;
+  vertical-align: middle;
+  size-adjust: 10pt;
+}
+
+.map {
+  height: 50vh;
+  width: 100%;
+}
