@@ -1,16 +1,7 @@
 import { Component, NgZone } from '@angular/core';
 import { Platform, ToastController } from '@ionic/angular';
-import { NativeGeocoder, NativeGeocoderOptions, NativeGeocoderResult } from '@ionic-native/native-geocoder/ngx';
 import { Geolocation } from '@ionic-native/geolocation/ngx';
-declare var google;
-import {
-  GoogleMaps,
-  GoogleMap,
-  GoogleMapsEvent,
-  Marker,
-  GoogleMapsAnimation,
-  MyLocation
-} from '@ionic-native/google-maps';
+declare var google: { maps: { places: { AutocompleteSessionToken: new () => string; AutocompleteService: new () => any; }; Geocoder: new () => any; GeocoderStatus: { OK: any; }; LatLng: new (arg0: number, arg1: number) => any; Map: new (arg0: HTMLElement, arg1: { zoom: number; center: any; }) => any; Marker: new (arg0: { map: any; position: any; }) => any; }; };
 
 @Component({
   selector: 'app-home',
@@ -19,20 +10,16 @@ import {
 })
 export class HomePage {
   items: any;
-  map: GoogleMap;
-  autocomplete: any;
+  map: any;
+  autocomplete: { input: string; };
   acService: any;
-  placesService: any;
   geocoder: any;
-  selectedItem: any;
-  sessionToken: any;
+  selectedItem: string;
+  sessionToken: string;
   showImage = true;
   destinationCity: string;
-  zipCode: string = "";
   address: string;
-  latitude: number;
-  longitude: number;
-  accuracy: number;
+  running = false;
 
   constructor(
     public toastCtrl: ToastController,
@@ -41,9 +28,10 @@ export class HomePage {
   ) {
     this.initPage()
   }
-  initPage() {
-    this.platform.ready();
+  async initPage() {
+    await this.platform.ready();
     this.geocoder = Geolocation;
+
     // Create a new session token.
     this.sessionToken = new google.maps.places.AutocompleteSessionToken();
     this.acService = new google.maps.places.AutocompleteService();
@@ -53,69 +41,37 @@ export class HomePage {
     };
   }
 
-  loadMap() {
-    this.map = GoogleMaps.create('map', {
-      camera: {
-        target: {
-          lat: this.latitude,
-          lng: this.longitude
-        },
-        zoom: 18,
-        tilt: 30
-      }
-    });
-    this.goToMyLocation(this.latitude, this.longitude);
-  }
+  loadMap(item: any) {
 
-  goToMyLocation(lat: number, long: number) {
-    this.map.clear();
-    // Get the location of you
-    this.map.getMyLocation().then((location: MyLocation) => {
-     
-
-      // Move the map camera to the location with animation
-      this.map.animateCamera({
-        target: {
-          lat: this.latitude,
-          lng: this.longitude
-        },
-        zoom: 17,
-        duration: 5000
-      });
-
-      //add a marker
-      let marker: Marker = this.map.addMarkerSync({
-        position: location.latLng,
-        animation: GoogleMapsAnimation.BOUNCE
-      });
-
-      //show the infoWindow
-      marker.showInfoWindow();
-
-      this.map.on(GoogleMapsEvent.MAP_READY).subscribe(
-        (data) => {
-         
+    let geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ 'address': item['description'] }, (results, status) => {
+      if (status == google.maps.GeocoderStatus.OK) {
+        var latlng = new google.maps.LatLng(53.3496, -6.3263);
+        var mapOptions =
+        {
+          zoom: 8,
+          center: latlng
         }
-      );
-    })
-      .catch(err => {
-        this.showToast(err.error_message);
-      });
-  }
+        this.map = new google.maps.Map(document.getElementById('map'), mapOptions);
+        this.map.setCenter(results[0].geometry.location);//center the map over the result
+        //place a marker at the location
+        var marker = new google.maps.Marker(
+          {
+            map: this.map,
+            position: results[0].geometry.location
+          });
+      } else {
+        alert('Geocode was not successful for the following reason: ' + status);
+      }
 
-  async showToast(message: string) {
-    let toast = await this.toastCtrl.create({
-      message: message,
-      duration: 2000,
-      position: 'middle'
+
     });
-    toast.present();
   }
 
 
   dismiss() {
-   
     this.showImage = true;
+    this.running = false;
     this.items = [];
     this.autocomplete = {
       input: ''
@@ -129,7 +85,7 @@ export class HomePage {
   }
 
 
-  formatDestinationCity(item: any){
+  formatDestinationCity(item: any) {
 
     if (item.structured_formatting.secondary_text.indexOf(",") > 0) {
       let lieuSplitted = item.structured_formatting.secondary_text.split(",", 1);
@@ -142,54 +98,35 @@ export class HomePage {
 
 
   chooseItem(item: any) {
-  
+
     this.showImage = false;
     this.selectedItem = item;
     this.items = [];
     this.autocomplete.input = item.structured_formatting.main_text + " - " + item.structured_formatting.secondary_text;
     this.formatDestinationCity(item);
-    let geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ 'address': item['description'] }, (results, status) => {
-      if (status == google.maps.GeocoderStatus.OK) {
-        this.zone.run(() => {
-          this.latitude = results[0].geometry.location.lat();
-          this.longitude = results[0].geometry.location.lng();
-         
-        })
-      }
-    });
+    this.running = true;
+    this.loadMap(item);
 
-   
-    this.platform.ready();
-    this.loadMap();
   }
 
   updateSearch() {
-    this.showImage = false;
-   
     if (this.autocomplete.input == '') {
       this.items = [];
       this.showImage = true;
+      this.running = false;
       return;
     }
-    let self = this;
-    let config: any;
-    config = {
-      types: ['cities'],
-      input: this.autocomplete.input,
-      sessionToken: this.sessionToken,
-      language: "EN",
+    if (!this.running) {
+      let self = this;
+      this.acService.getPlacePredictions({ types: ['geocode'], input: this.autocomplete.input }, function (predictions, status) {
+        self.items = [];
+        if (predictions) {
+          predictions.forEach(function (prediction) {
+            self.items.push(prediction);
+          });
+        }
+      });
+
     }
-
-   
-
-    this.acService.getPlacePredictions({ input: this.autocomplete.input }, function (predictions, status) {  
-      self.items = [];
-      if (predictions) {
-        predictions.forEach(function (prediction) {
-          self.items.push(prediction);
-        });
-      }
-    });
   }
 }

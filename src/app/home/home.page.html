@@ -31,7 +31,7 @@
     <!-- Search Items -->
 
     <ion-list [hidden]="items.length === 0">
-      <ion-item *ngFor="let item of items" (click)="chooseItem(item)">
+      <ion-item  *ngFor="let item of items" (click)="chooseItem(item)" >
         <ion-label text-wrap>
           <h2>{{item.structured_formatting.main_text}}</h2>
           <p>{{item.structured_formatting.secondary_text}}</p>
