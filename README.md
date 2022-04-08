@@ -6,10 +6,14 @@ Implements the following page using Ionic v5 and Angular. The search box must in
 
 ![task1](assets/task1.jpg)
 
-## How to run the project
+## Install Packages before running the project
 Install the following libraries before running the project. npm install >
-1-  @agm/core@3.0.0-beta.0
-2-  @ionic/angular@6.0.14
-3-  @ionic-native/core@5.36.0
-4-  @ionic-native/google-maps@5.5.0
-5-  @ionic-native/geolocation@5.36.0
+1-  @ionic/angular@6.0.14
+2-  @ionic-native/core@5.36.0
+3-  @ionic-native/google-maps@5.5.0
+4-  @ionic-native/geolocation@5.36.0
+
+## How to run the project
+Commands to run the project
+1- cmd
+2- ionic cordova run browser
