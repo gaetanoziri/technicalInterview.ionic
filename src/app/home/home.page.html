@@ -1,0 +1,51 @@
+<!-- Appbar -->
+<ion-header>
+  <ion-toolbar>
+    <!-- Appbar Back button Icon -->
+    <div class="back-button">
+      <ion-icon name="chevron-back-outline" style="size: 50pt; color: darkslateblue;"></ion-icon>
+    </div>
+    <!-- Appbar Title -->
+    <div class="appbar-title">
+      <ion-title>
+        Cerco una stanza
+      </ion-title>
+    </div>
+
+  </ion-toolbar>
+</ion-header>
+
+<!-- Body -->
+<ion-content [fullscreen]="true">
+
+  <div class="top-content">
+    <h3 class="heading">In quale citta?</h3>
+    <p class="sub-heading">Indicaci la citta in cui cerchi il tuo prossimo alloggio</p>
+
+    <!-- Searchbar -->
+
+    <ion-searchbar class="location-search" mode="ios" type="text" debounce="500" [(ngModel)]="autocomplete.input"
+      (ionChange)="updateSearch()" (ionCancel)="dismiss()" (ionClear)="dismiss()" placeholder="Cerca">
+    </ion-searchbar>
+
+    <!-- Search Items -->
+
+    <ion-list [hidden]="items.length === 0">
+      <ion-item  *ngFor="let item of items" (click)="chooseItem(item)" >
+        <ion-label text-wrap>
+          <h2>{{item.structured_formatting.main_text}}</h2>
+          <p>{{item.structured_formatting.secondary_text}}</p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+
+    <!-- Image -->
+    <div class="bottom-content" [hidden]="showImage === false">
+      <img class="map-image" src="assets/map.svg" />
+    </div>
+
+    <!-- Google Map -->
+    <div class="map" id="map" [hidden]="showImage === true"></div>
+  </div>
+
+</ion-content>
